@@ -29,7 +29,7 @@
 
 ### 第1步：下载程序
 
-访问本项目的 [Releases 页面](https://github.com/keepsea/goddns/releases) (请将 `keepsea/goddns` 替换为您的实际仓库地址)，根据您的操作系统下载对应的服务端和客户端程序。
+访问本项目的 [Releases 页面]([https://github.com/keepsea/goddns/releases](https://github.com/keepsea/goddns/releases/tag/1.0.0)) ，根据您的操作系统下载对应的服务端和客户端程序。
 
 - `ddns-server-linux`: 用于Linux服务器的服务端。
 - `ddns-client-linux`: 用于Linux服务器的客户端。
