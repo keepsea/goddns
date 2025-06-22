@@ -108,7 +108,3 @@ check_interval_seconds = 300
     cd ddns-server
     go build -mod=vendor -o ddns-server-linux main.go
     ```-mod=vendor` 标志告诉Go命令使用项目内置的依赖进行编译。
-
-## ⚠️ 注意事项
-- 请务必保证服务端和客户端的 `secret_token` 完全一致。
-- 请妥善保管您的阿里云AccessKey和`secret_token`，不要泄露。
