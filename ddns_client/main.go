@@ -1,6 +1,6 @@
 // ===================================================================================
 // File: client/main.go
-// Description: DDNS 客户端程序，部署在家庭宽带服务器上。
+// Description: DDNS 客户端程序 (V2.0)。
 // ===================================================================================
 package main
 
@@ -18,12 +18,11 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-// AppConfig 保存从 config.ini 读取的配置
+// AppConfig holds the configuration read from config.ini
 type AppConfig struct {
 	ServerURL            string
+	Username             string
 	SecretToken          string
-	DomainName           string
-	RR                   string
 	CheckIntervalSeconds int
 }
 
@@ -31,7 +30,7 @@ var config AppConfig
 
 const lastIPFile = "last_ip.txt"
 
-// loadConfig 从 config.ini 文件加载配置
+// loadConfig loads configuration from config.ini
 func loadConfig() error {
 	cfg, err := ini.Load("config.ini")
 	if err != nil {
@@ -40,24 +39,23 @@ func loadConfig() error {
 
 	clientSection := cfg.Section("client")
 	config.ServerURL = clientSection.Key("server_url").String()
+	config.Username = clientSection.Key("username").String()
 	config.SecretToken = clientSection.Key("secret_token").String()
-	config.DomainName = clientSection.Key("domain_name").String()
-	config.RR = clientSection.Key("rr").String()
 	config.CheckIntervalSeconds = clientSection.Key("check_interval_seconds").MustInt(300)
 
-	if config.ServerURL == "" || config.SecretToken == "" || config.DomainName == "" || config.RR == "" {
-		return fmt.Errorf("config.ini 中缺少一个或多个必要的配置项")
+	if config.ServerURL == "" || config.Username == "" || config.SecretToken == "" {
+		return fmt.Errorf("config.ini 中缺少 server_url, username, 或 secret_token")
 	}
 	return nil
 }
 
-// getPublicIP 从公共服务获取本机的公网 IP
+// getPublicIP gets the public IP from an external service
 func getPublicIP() (string, error) {
 	ipServices := []string{
-		"https://api.ipify.org",
-		"http://ifconfig.me/ip",
-		"http://icanhazip.com",
-		"http://ipinfo.io/ip",
+		"[https://api.ipify.org](https://api.ipify.org)",
+		"[http://ifconfig.me/ip](http://ifconfig.me/ip)",
+		"[http://icanhazip.com](http://icanhazip.com)",
+		"[http://ipinfo.io/ip](http://ipinfo.io/ip)",
 	}
 
 	for _, service := range ipServices {
@@ -84,38 +82,33 @@ func getPublicIP() (string, error) {
 	return "", fmt.Errorf("尝试了所有 IP 服务，均未能获取公网 IP")
 }
 
-// readLastIP 从本地文件读取上次记录的 IP
+// readLastIP reads the last known IP from a local file
 func readLastIP() (string, error) {
 	data, err := os.ReadFile(lastIPFile)
 	if os.IsNotExist(err) {
-		return "", nil // 文件不存在是正常情况
+		return "", nil
 	}
-	if err != nil {
-		return "", err
-	}
-	return string(data), nil
+	return string(data), err
 }
 
-// writeLastIP 将新的 IP 写入本地文件
+// writeLastIP writes the new IP to the local file
 func writeLastIP(ip string) error {
 	return os.WriteFile(lastIPFile, []byte(ip), 0644)
 }
 
-// UpdateRequest 是发送给服务端的请求结构体
+// UpdateRequest is the structure for the request sent to the server
 type updateRequest struct {
-	DomainName string `json:"domain_name"`
-	RR         string `json:"rr"`
-	NewIP      string `json:"new_ip"`
+	Username string `json:"username"`
+	NewIP    string `json:"new_ip"`
 }
 
-// sendUpdateRequest 向服务端发送更新请求
+// sendUpdateRequest sends an update request to the server
 func sendUpdateRequest(currentIP string) {
-	log.Printf("检测到 IP 地址变化，准备向服务端发送更新请求...")
+	log.Printf("检测到 IP 地址变化，准备为用户 '%s' 发送更新请求...", config.Username)
 
 	reqPayload := updateRequest{
-		DomainName: config.DomainName,
-		RR:         config.RR,
-		NewIP:      currentIP,
+		Username: config.Username,
+		NewIP:    currentIP,
 	}
 
 	jsonData, err := json.Marshal(reqPayload)
@@ -133,8 +126,8 @@ func sendUpdateRequest(currentIP string) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+config.SecretToken)
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	httpClient := &http.Client{Timeout: 30 * time.Second}
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		log.Printf("错误: 发送更新请求到 %s 失败: %v", config.ServerURL, err)
 		return
@@ -144,7 +137,6 @@ func sendUpdateRequest(currentIP string) {
 	respBody, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode == http.StatusOK {
 		log.Printf("成功: 服务端响应: %s", string(respBody))
-		// 更新成功后，才将新 IP 写入本地文件
 		if err := writeLastIP(currentIP); err != nil {
 			log.Printf("严重错误: 更新本地 IP 记录文件 %s 失败: %v", lastIPFile, err)
 		}
@@ -153,7 +145,7 @@ func sendUpdateRequest(currentIP string) {
 	}
 }
 
-// checkAndupdate 检查并更新 IP 的主逻辑
+// checkAndupdate is the main logic to check and update the IP
 func checkAndupdate() {
 	log.Println("开始检查公网 IP...")
 
@@ -178,11 +170,11 @@ func checkAndupdate() {
 }
 
 func main() {
-	log.Println("DDNS 客户端启动...")
+	log.Println("DDNS 客户端 (V2.0) 启动...")
 	if err := loadConfig(); err != nil {
 		log.Fatalf("错误: 加载配置失败: %v", err)
 	}
-	log.Printf("配置信息: 服务端地址=%s, 域名=%s.%s, 检查间隔=%v", config.ServerURL, config.RR, config.DomainName, time.Duration(config.CheckIntervalSeconds)*time.Second)
+	log.Printf("配置加载成功: 用户名=%s, 服务端地址=%s, 检查间隔=%v", config.Username, config.ServerURL, time.Duration(config.CheckIntervalSeconds)*time.Second)
 
 	checkAndupdate()
 

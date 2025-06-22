@@ -1,0 +1,22 @@
+{
+    "users": [
+        {
+            "username": "okrj",
+            "secret_token": "a-very-strong-and-unique-token-for-okrj",
+            "domain_name": "anxinred.com",
+            "rr": "homehost"
+        },
+        {
+            "username": "friend1",
+            "secret_token": "another-different-secret-token-for-friend",
+            "domain_name": "friend-domain.com",
+            "rr": "nas"
+        },
+        {
+            "username": "office-pc",
+            "secret_token": "a-third-token-for-office-computer",
+            "domain_name": "mycompany.com",
+            "rr": "remote-desktop"
+        }
+    ]
+}
