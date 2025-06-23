@@ -1,4 +1,4 @@
-module github.com/keepsea/ddns-app-client
+module github.com/keepsea/goddns/ddns_client
 
 go 1.24.3
 

@@ -1,4 +1,4 @@
-module github.com/keepsea/ddns_server
+module github.com/keepsea/goddns/ddns_server
 
 go 1.24.3
 
@@ -7,7 +7,7 @@ require (
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.7
 	github.com/alibabacloud-go/tea v1.3.9
 	github.com/aliyun/credentials-go v1.4.6
-//gopkg.in/ini.v1 v1.67.0
+	gopkg.in/ini.v1 v1.67.0
 )
 
 require (
