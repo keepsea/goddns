@@ -11,17 +11,16 @@ import (
 
 	"github.com/keepsea/goddns/ddns_server/config"
 	"github.com/keepsea/goddns/ddns_server/handler"
+	"github.com/keepsea/goddns/ddns_server/security"
 )
 
 func main() {
-	log.Println("DDNS 服务端 (V2.1 - 端口可配置) 启动中...")
+	log.Println("GODDNS 服务端 (V2.1.0) 启动中...")
 
-	// 启动时先加载服务自身配置 (如端口号)
+	// 启动时加载所有配置
 	if err := config.LoadServerConfig(); err != nil {
 		log.Fatalf("错误: 启动时加载服务端配置失败: %v", err)
 	}
-
-	// 然后加载用户配置
 	if err := config.LoadUsers(); err != nil {
 		log.Fatalf("错误: 启动时加载用户配置失败: %v", err)
 	}
@@ -30,10 +29,17 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/update-dns", handler.HandleUpdateDNS)
 	mux.HandleFunc("/manage-records", handler.HandleManageRecords)
+	mux.HandleFunc("/manage-key", handler.HandleManageKey)
+
+	// 应用我们的安全中间件
+	// 1. 限制请求体大小为1MB
+	// 2. 对每个IP进行速率限制
+	handlerWithMiddleware := security.LimitRequestSize(mux, 1024*1024)
+	handlerWithMiddleware = security.RateLimit(handlerWithMiddleware)
 
 	server := &http.Server{
-		Addr:         ":" + config.ServerPort, // 使用从配置文件读取的端口
-		Handler:      mux,
+		Addr:         ":" + config.ServerPort,
+		Handler:      handlerWithMiddleware,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 	}
