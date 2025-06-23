@@ -1,6 +1,6 @@
 // ===================================================================================
 // File: ddns-server/handler/update.go
-// Description: 负责处理所有与DNS记录更新相关的HTTP请求。
+// Description: 实现 HandleUpdateDNS 函数，专门处理客户端的IP更新请求。它会调用 common.go 的认证函数，然后协调 security 模块进行输入验证，并调用 aliyun 和 config 模块来完成最终的DNS记录创建和更新。
 // ===================================================================================
 package handler
 

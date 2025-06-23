@@ -1,3 +1,15 @@
+// ===================================================================================
+// File: ddns-server/config/config.go
+// Description:  项目的数据和配置管理中心。
+// 功能:
+// - 定义 User, DomainRecord 等核心数据结构。
+// - 从 server.ini 加载服务自身配置（如端口号）。
+// - 从 users.json 加载、解析所有用户信息，并将其存入一个易于查询的map中。
+// - 提供线程安全的函数（如 GetUserByKeyLookup, BindRecordToUser, UnbindRecordFromUser, UpdateUserKey）来增、删、改、查用户数据。
+// - 在用户注册新域名时，进行额度检查和全局域名冲突检查。
+// - 负责将更新后的用户数据写回 users.json 文件，实现数据持久化。
+//
+// ===================================================================================
 package config
 
 import (
@@ -193,5 +205,13 @@ func saveUsersToFile() error {
 	if err != nil {
 		return fmt.Errorf("序列化用户配置失败: %w", err)
 	}
-	return os.WriteFile(UsersConfigFile, file, 0644)
+
+	tmpFile := UsersConfigFile + ".tmp"
+	if err := os.WriteFile(tmpFile, file, 0600); err != nil {
+		return fmt.Errorf("写入临时用户配置文件失败: %w", err)
+	}
+	if err := os.Rename(tmpFile, UsersConfigFile); err != nil {
+		return fmt.Errorf("原子重命名用户配置文件失败: %w", err)
+	}
+	return nil
 }

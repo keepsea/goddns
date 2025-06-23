@@ -1,5 +1,6 @@
 // ===================================================================================
 // File: ddns-server/security/crypto.go
+// Description: 提供了 Encrypt 和 Decrypt 两个核心函数，基于AES-GCM算法实现应用层的对称加密，确保了通信内容的机密性。
 // ===================================================================================
 package security
 
@@ -13,6 +14,9 @@ import (
 )
 
 func Encrypt(key, plaintext []byte) (string, error) {
+	if len(key) != 32 {
+		return "", fmt.Errorf("密钥长度必须为16、24或32字节")
+	}
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return "", err
@@ -29,6 +33,9 @@ func Encrypt(key, plaintext []byte) (string, error) {
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
 func Decrypt(key []byte, ciphertext string) ([]byte, error) {
+	if len(key) != 32 {
+		return nil, fmt.Errorf("密钥长度必须为16、24或32字节")
+	}
 	data, err := base64.StdEncoding.DecodeString(ciphertext)
 	if err != nil {
 		return nil, err

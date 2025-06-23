@@ -1,6 +1,6 @@
 // ===================================================================================
 // File: ddns-server/handler/records.go
-// Description: 负责处理所有与用户域名记录管理（查看/删除）相关的HTTP请求。
+// Description: 实现 HandleManageRecords 函数，负责处理用户对域名记录的自助管理。它会根据HTTP请求的方法（GET或DELETE），分别调用内部的handleList（查看）或handleDelete（删除）逻辑。
 // ===================================================================================
 package handler
 
