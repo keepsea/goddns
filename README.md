@@ -53,14 +53,14 @@
     {
       "users": [
         {
-          "username": "okrj",
+          "username": "user0",
           "secret_token": "a-very-strong-token-for-okrj",
           "encryption_key": "a-32-byte-long-unique-encryption-key-!",
           "domain_limit": 2,
           "records": []
         },
         {
-          "username": "friend1",
+          "username": "user1",
           "secret_token": "another-secret-token-for-friend",
           "encryption_key": "another-32-byte-unique-key-for-friend-!",
           "domain_limit": 1,
@@ -85,7 +85,7 @@ encryption_key = a-32-byte-long-unique-encryption-key-!
 
 # --- 以下配置仅在运行IP更新时需要 ---
 # 您希望注册和更新的主域名
-domain_name = anxinred.com
+domain_name = example.com
 # 您希望注册和更新的主机记录 (例如 'www', 'nas')
 rr = homehost
 # 检查公网IP的时间间隔（秒）
