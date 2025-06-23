@@ -1,7 +1,7 @@
 {
     "users": [
         {
-            "username": "okrj",
+            "username": "username",
             "secret_token": "a-strong-secret-token-for-authentication",
             "encryption_key": "a-32-byte-long-unique-encryption-key-!",
             "domain_limit": 2,
